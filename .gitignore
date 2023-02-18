@@ -2,7 +2,7 @@
 tmp*
 
 # Data and results
-
+data/*/
 *.pt
 
 # OS-related

@@ -1,4 +1,0 @@
-data/m4/Monthly-train.csv filter=lfs diff=lfs merge=lfs -text
-data/m4/Monthly-test.csv filter=lfs diff=lfs merge=lfs -text
-data/tour/monthly_in.csv filter=lfs diff=lfs merge=lfs -text
-data/tour/monthly_oos.csv filter=lfs diff=lfs merge=lfs -text
