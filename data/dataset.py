@@ -34,7 +34,7 @@ def load_datasets(
 
     cutoff = df["index"].max() - forecast_len
     trainset = trainset = TimeSeriesDataSet(
-        df[lambda x: x["index"] <= cutoff],
+        df[lambda x: x["index"] < cutoff],
         time_idx="index",
         target="value",
         categorical_encoders={"variable": NaNLabelEncoder().fit(df["variable"])},
@@ -44,7 +44,5 @@ def load_datasets(
         max_encoder_length=lookback_len,
         max_prediction_length=forecast_len,
     )
-    validset = TimeSeriesDataSet.from_dataset(
-        trainset, df, min_prediction_idx=cutoff + 1
-    )
+    validset = TimeSeriesDataSet.from_dataset(trainset, df, min_prediction_idx=cutoff)
     return trainset, validset
