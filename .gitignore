@@ -3,7 +3,7 @@ tmp*
 
 # Data and results
 data/*/
-*.pt
+pretrained/
 
 # OS-related
 *.deb

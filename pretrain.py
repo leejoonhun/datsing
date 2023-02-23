@@ -2,7 +2,9 @@ import pytorch_lightning as pl
 from pytorch_forecasting.metrics import SMAPE
 from pytorch_forecasting.models import NBeats
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.strategies import DDPStrategy
+from torch import cuda
 
 from data import load_datasets
 from utils import parse_args
@@ -21,25 +23,38 @@ def pretrain(
 
     # data
     trainset, validset = load_datasets(
-        data_name="m4",
+        mode="pretrain",
         lookback_len=forecast_period * lookback_mult,
         forecast_len=forecast_period,
     )
     trainloader, validloader = (
         trainset.to_dataloader(
-            train=True, batch_size=batch_size, num_workers=8, pin_memory=True
+            train=True,
+            batch_size=batch_size,
+            num_workers=4 * cuda.device_count(),
+            pin_memory=True,
         ),
         validset.to_dataloader(
-            train=False, batch_size=batch_size, num_workers=8, pin_memory=True
+            train=False,
+            batch_size=batch_size,
+            num_workers=4 * cuda.device_count(),
+            pin_memory=True,
         ),
     )
 
     # model
     nbeats = NBeats.from_dataset(trainset, learning_rate=3e-2, loss=SMAPE())
-    nbeats.save_hyperparameters(ignore=["loss", "logging_metrics"])
 
     # train
+    checkpoint_callback = ModelCheckpoint(
+        "pretrained",
+        "{epoch:02d}-{val_loss:.2f}",
+        monitor="val_loss",
+        every_n_epochs=1,
+    )
     trainer = Trainer(
+        logger=False,
+        callbacks=[checkpoint_callback],
         gradient_clip_val=0.1,
         max_epochs=num_epoch,
         accelerator="cuda",
