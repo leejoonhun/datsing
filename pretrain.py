@@ -1,5 +1,5 @@
 import pytorch_lightning as pl
-from pytorch_forecasting.metrics import SMAPE
+from pytorch_forecasting import metrics
 from pytorch_forecasting.models import NBeats
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -14,6 +14,7 @@ def pretrain(
     forecast_period: int,
     lookback_mult: int,
     batch_size: int,
+    loss_type: str,
     num_epoch: int,
     seed: int,
     **kwargs,
@@ -43,13 +44,13 @@ def pretrain(
     )
 
     # model
-    nbeats = NBeats.from_dataset(trainset, learning_rate=3e-2, loss=SMAPE())
+    loss = getattr(metrics, loss_type.upper())()
+    nbeats = NBeats.from_dataset(trainset, learning_rate=3e-2, loss=loss)
 
     # train
     checkpoint_callback = ModelCheckpoint(
         "pretrained",
         "{epoch:02d}-{val_loss:.2f}",
-        monitor="val_loss",
         every_n_epochs=1,
     )
     trainer = Trainer(
